@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>GTIN Parser</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <nav>
+        <span>Pharmaceutical GTIN Parser</span>
+    </nav>
+    <main>
+        <div id="content-container">
+            <div id="input-container">
+                <div id="about">
+                    <h1>GTIN PARSER</h1>
+                    <span>Scan a <span class="tooltip-text">data matrix
+                            <div class="tooltip">
+                                <span>... one of these things.</span>
+                                <img src="/Datamatrix.svg.png">
+                            </div>
+                        </span> with a barcode reader or paste a GTIN string into the input to extract useable data.
+                    </span><br><br>
+                    <span>Click output fields to copy to the clipboard.</span>
+                </div>
+                <input id="data-input" type="text" placeholder="input data" autocomplete="off" autocorrect="off" autocapitalize="off">
+                <div id="log-container">
+                    <span>Log:</span>
+                    <span id="log"></span>
+                </div>
+            </div>
+            <div id="results-container">
+                <div id="serial-container" class="output-container">
+                    <span class="output-label">Serial Number</span>
+                    <div class="output-div" id="SERIAL-output"></div>
+                </div>
+                <div id="lot-container" class="output-container">
+                    <span class="output-label">Batch/Lot Number</span>
+                    <div class="output-div" id="LOT-output"></div>
+                </div>
+                <div id="gtin-container" class="output-container">
+                    <span class="output-label">GTIN</span>
+                    <div class="output-div" id="GTIN-output"></div>
+                </div>
+                <div id="exp-container" class="output-container">
+                    <span class="output-label">Expires</span>
+                    <div class="output-div" id="EXP-output"></div>
+                </div>
+                <div id="prod-container" class="output-container">
+                    <span class="output-label">Produced</span>
+                    <div class="output-div" id="PROD-output"></div>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+    <footer>
+        <span>Hand-programmed by Louis Harrison. Open console for credits (Ctrl+Shift+I)</span>
+    </footer>
+</body>
+<script src="parser.js"></script>
+
+</html>
