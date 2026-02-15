@@ -10,6 +10,8 @@ console.log('%cApp programmed by Louis Harrison... consider giving dad a raise?'
 const dataInput = document.getElementById('data-input')
 const log = document.getElementById('log')
 
+dataInput.focus()
+
 document.querySelectorAll('.output-div').forEach(div => {
     div.addEventListener('click', event => {
         const element = event.currentTarget
