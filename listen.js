@@ -2,6 +2,7 @@ import { createClient } from 'https://cdn.skypack.dev/@supabase/supabase-js'
 
 const scannerSessionId = document.getElementById('scanner-session-id')
 const scannerStatus = document.getElementById('scanner-status')
+const dataInput = document.getElementById('data-input')
 
 const sessionConfig = {
 	session_id: null
@@ -33,9 +34,9 @@ supabase
 			table: 'scans'
 		},
 		payload => {
-			console.log(payload.new.data)
+			console.log('RECIEVED DATA', sessionConfig.session_id, payload.new.session_id)
 			if (sessionConfig.session_id && payload.new.session_id === sessionConfig.session_id) {
-				document.getElementById('data-input').value = payload.new.data
+				dataInput.value = payload.new.data
 			}
 		}
 	)
