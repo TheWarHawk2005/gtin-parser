@@ -10,13 +10,12 @@
 
 <body>
 
-	<h2>Scan Barcode</h2>
 	<video id="video" autoplay></video>
-	<p id="status">Initializing...</p>
+	<p id="status">Waiting...</p>
 	<button id="startBtn">Start Scan</button>
 
 	<script type="module">
-		import { startScanner } from './scan.js';
+		import { startScanner } from './scanner.js';
 
 		const videoEl = document.getElementById('video');
 		const statusEl = document.getElementById('status');
