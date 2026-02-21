@@ -8,7 +8,7 @@ const supabase = createClient(
 	'sb_publishable_a_U12sK4KRvKiNFbscemOA_hK1_mRAn'
 );
 
-let sessionId = new URLSearchParams(window.location.search).get('session') || 'TEST_SESSION';
+let sessionId = new URLSearchParams(window.location.search).get('session') || 'GRHV01';
 
 // ---------------- ZXing Setup ----------------
 const hints = new Map();
