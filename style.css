@@ -131,8 +131,16 @@ h1,
 }
 
 #data-input {
+	margin-bottom: 16px;
+}
+
+#data-input, #scanner-session-id {
     height: 24px;
     width: 100%;
+}
+
+#scanner-status {
+	display: none;
 }
 
 #log-container {

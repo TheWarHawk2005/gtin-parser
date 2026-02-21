@@ -29,6 +29,9 @@
                 </div>
                 <input id="data-input" type="text" placeholder="input data" autocomplete="off" autocorrect="off"
                     autocapitalize="off">
+				<input id="scanner-session-id" type="text" placeholder="optional: scanner session id" autocomplete="off" autocorrect="off"
+                    autocapitalize="off">
+				<span id="scanner-status"></span>
                 <div id="log-container">
                     <span>Log:</span>
                     <span id="log"></span>
@@ -64,6 +67,7 @@
         <span>Hand-programmed by Louis Harrison. Open console for credits (Ctrl+Shift+I)</span>
     </footer>
 </body>
+<script src="listen.js" type="module"></script>
 <script src="parser.js"></script>
 
 </html>

@@ -1,74 +1,22 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-<meta charset="UTF-8">
-<title>Camera Barcode Scan</title>
-<style>
-  video { width: 100%; max-width: 400px; border: 1px solid #ccc; }
-</style>
+	<meta charset="UTF-8">
+	<title>Camera Barcode Scan</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<link rel="stylesheet" href="scan.css">
 </head>
+
 <body>
 
-<h2>Scan Barcode</h2>
-<video id="video" autoplay></video>
-<p id="status">Initializing...</p>
-<button id="startBtn">Start Scan</button>
+	<h2>Scan Barcode</h2>
+	<video id="video" autoplay></video>
+	<p id="status">Initializing...</p>
+	<button id="startBtn">Start Scan</button>
 
-<script type="module">
-import { BrowserMultiFormatReader, DecodeHintType, BarcodeFormat } from 'https://cdn.jsdelivr.net/npm/@zxing/library@0.19.1/+esm';
-import { createClient } from 'https://cdn.skypack.dev/@supabase/supabase-js';
-
-const supabase = createClient(
-  'https://mwsjvglbljyncdrivrtc.supabase.co',
-  'sb_publishable_a_U12sK4KRvKiNFbscemOA_hK1_mRAn'
-);
-
-const sessionId = new URLSearchParams(window.location.search).get('session') || 'TEST_SESSION';
-const video = document.getElementById('video');
-const status = document.getElementById('status');
-const startBtn = document.getElementById('startBtn');
-
-const hints = new Map();
-hints.set(DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.DATA_MATRIX]);
-const codeReader = new BrowserMultiFormatReader(hints);
-
-startBtn.addEventListener('click', async () => {
-  status.innerText = "Starting camera...";
-
-  try {
-    // Get camera devices
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    const videoDevices = devices.filter(d => d.kind === 'videoinput');
-    if (videoDevices.length === 0) throw new Error('No camera found');
-
-    const selectedDeviceId = videoDevices[0].deviceId;
-
-    status.innerText = "Camera started. Scanning...";
-
-    // Start decoding from camera
-    codeReader.decodeFromVideoDevice(selectedDeviceId, video, async (result, err) => {
-      if (result) {
-        status.innerText = "Decoded: " + result.text;
-
-        // Send to Supabase
-        await supabase.from('scans').insert({
-          session_id: sessionId,
-          data: result.text
-        });
-
-        codeReader.reset();
-        status.innerText = "Scan complete and sent!";
-      } else if (err && !(err instanceof ZXing.NotFoundException)) {
-        console.error(err);
-      }
-    });
-
-  } catch (err) {
-    status.innerText = "Error: " + err.message;
-    console.error(err);
-  }
-});
-</script>
-
+	<script type="module" src="scan.js"></script>
 </body>
+
 </html>
