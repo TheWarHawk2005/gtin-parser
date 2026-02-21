@@ -1,62 +1,58 @@
 <!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scan Data Matrix</title>
-</head>
-
+<html>
 <body>
 
-    <h2>Upload / Capture Barcode</h2>
+<h2>Upload / Capture Barcode</h2>
+<input type="file" id="fileInput" accept="image/*" capture="environment" />
+<p id="status"></p>
 
-    <input type="file" id="fileInput" accept="image/*" capture="environment" />
-    <p id="status"></p>
+<script type="module">
+import { BrowserMultiFormatReader, DecodeHintType, BarcodeFormat } from 'https://cdn.jsdelivr.net/npm/@zxing/library@0.19.1/+esm';
+import { createClient } from 'https://cdn.skypack.dev/@supabase/supabase-js';
 
-    <script type="module">
-        import { BrowserMultiFormatReader, DecodeHintType, BarcodeFormat } from 'https://cdn.jsdelivr.net/npm/@zxing/library@0.19.1/+esm';
-        import { createClient } from 'https://cdn.skypack.dev/@supabase/supabase-js'
+const supabase = createClient(
+  'https://mwsjvglbljyncdrivrtc.supabase.co',
+  'sb_publishable_a_U12sK4KRvKiNFbscemOA_hK1_mRAn'
+);
 
-        const supabase = createClient(
-            'https://mwsjvglbljyncdrivrtc.supabase.co',
-            'sb_publishable_a_U12sK4KRvKiNFbscemOA_hK1_mRAn'
-        )
+const sessionId = new URLSearchParams(window.location.search).get('session');
 
-        const sessionId = new URLSearchParams(window.location.search).get('session')
+const hints = new Map();
+hints.set(DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.DATA_MATRIX]);
 
-        const codeReader = new BrowserMultiFormatReader()
+const codeReader = new BrowserMultiFormatReader(hints);
 
-        const fileInput = document.getElementById('fileInput')
-        const status = document.getElementById('status')
+const fileInput = document.getElementById('fileInput');
+const status = document.getElementById('status');
 
-        fileInput.addEventListener('change', async (event) => {
-            const file = event.target.files[0]
-            if (!file) return
+fileInput.addEventListener('change', async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
 
-            status.innerText = "Decoding..."
+  status.innerText = "Decoding...";
 
-            try {
-                const imageUrl = URL.createObjectURL(file)
+  try {
+    const imageUrl = URL.createObjectURL(file);
 
-                const result = await codeReader.decodeFromImageUrl(imageUrl)
+    // decodeFromImageUrl works with @zxing/library
+    const result = await codeReader.decodeFromImageUrl(imageUrl);
 
-                status.innerText = "Decoded: " + result.text
+    status.innerText = "Decoded: " + result.text;
 
-                await supabase.from('scans').insert({
-                    session_id: sessionId,
-                    data: result.text
-                })
+    // Send to Supabase
+    await supabase.from('scans').insert({
+      session_id: sessionId,
+      data: result.text
+    });
 
-                status.innerText = "Sent successfully!"
+    status.innerText = "Sent successfully!";
 
-            } catch (err) {
-                status.innerText = "Could not decode barcode."
-                console.error(err)
-            }
-        })
-    </script>
+  } catch (err) {
+    status.innerText = "Could not decode barcode.";
+    console.error(err);
+  }
+});
+</script>
 
 </body>
-
 </html>
