@@ -1,5 +1,5 @@
 // scanner.js
-import { BrowserMultiFormatReader, DecodeHintType, BarcodeFormat } from 'https://cdn.jsdelivr.net/npm/@zxing/library@0.19.1/+esm';
+import { BrowserMultiFormatReader, DecodeHintType, BarcodeFormat, NotFoundException } from 'https://cdn.jsdelivr.net/npm/@zxing/library@0.19.1/+esm';
 import { createClient } from 'https://cdn.skypack.dev/@supabase/supabase-js';
 
 // ---------------- Supabase Setup ----------------
@@ -8,7 +8,7 @@ const supabase = createClient(
 	'sb_publishable_a_U12sK4KRvKiNFbscemOA_hK1_mRAn'
 );
 
-const sessionId = new URLSearchParams(window.location.search).get('session') || 'TEST_SESSION';
+let sessionId = new URLSearchParams(window.location.search).get('session') || 'TEST_SESSION';
 
 // ---------------- ZXing Setup ----------------
 const hints = new Map();
@@ -21,7 +21,7 @@ let scanning = false;
 
 // ---------------- Start Scanner ----------------
 export async function startScanner(videoElement, statusElement) {
-	if (scanning) return;
+	if (scanning) return; // Prevent double-start
 	scanning = true;
 	statusElement.innerText = "Initializing scanner...";
 
@@ -38,7 +38,9 @@ export async function startScanner(videoElement, statusElement) {
 
 		statusElement.innerText = "Camera started. Scanning...";
 
-		codeReader.decodeFromVideoDevice(selectedDeviceId, videoElement, handleResult);
+		codeReader.decodeFromVideoDevice(selectedDeviceId, videoElement, (result, err) => {
+			handleResult(result, err, statusElement);
+		});
 
 	} catch (err) {
 		scanning = false;
@@ -57,6 +59,28 @@ export function stopScanner() {
 	}
 }
 
+// ---------------- Handle Decoded Result ----------------
+async function handleResult(result, err, statusElement) {
+	if (result) {
+		statusElement.innerText = "Decoded: " + result.text;
+
+		// Send to Supabase
+		const { error } = await supabase.from('scans').insert({
+			session_id: sessionId,
+			data: result.text
+		});
+
+		if (error) console.error("Supabase insert failed:", error);
+
+		// Stop scanner after first successful scan
+		stopScanner();
+		statusElement.innerText = "Scan complete and sent!";
+	} else if (err && !(err instanceof NotFoundException)) {
+		console.error("ZXing error:", err);
+	}
+}
+
+// ---------------- Get Camera Device ID ----------------
 async function getCameraDeviceId() {
 	// Request camera once to get permission & labels
 	const tempStream = await navigator.mediaDevices.getUserMedia({ video: true });
