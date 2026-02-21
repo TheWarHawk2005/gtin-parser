@@ -21,7 +21,7 @@ let scanning = false;
 
 // ---------------- Start Scanner ----------------
 export async function startScanner(videoElement, statusElement) {
-	if (scanning) return; // Prevent double-start
+	if (scanning) return;
 	scanning = true;
 	statusElement.innerText = "Initializing scanner...";
 
@@ -33,13 +33,13 @@ export async function startScanner(videoElement, statusElement) {
 		if (!currentStream) {
 			currentStream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: selectedDeviceId } });
 			videoElement.srcObject = currentStream;
+			videoElement.style.display = 'block'; // show video now
 			await videoElement.play();
 		}
 
 		statusElement.innerText = "Camera started. Scanning...";
-
 		codeReader.decodeFromVideoDevice(selectedDeviceId, videoElement, (result, err) => {
-			handleResult(result, err, statusElement, videoElement);
+			handleResult(result, err, statusElement);
 		});
 
 	} catch (err) {
@@ -48,23 +48,21 @@ export async function startScanner(videoElement, statusElement) {
 		console.error(err);
 	}
 }
-
 // ---------------- Stop Scanner ----------------
 export function stopScanner(videoElement) {
 	scanning = false;
 	codeReader.reset();
 
 	if (currentStream) {
-		// Stop all tracks
 		currentStream.getTracks().forEach(track => track.stop());
 		currentStream = null;
 	}
 
 	if (videoElement) {
-		// Detach the stream from the video element
 		videoElement.srcObject = null;
 		videoElement.pause();
-		videoElement.load(); // reset the element completely
+		videoElement.load();
+		videoElement.style.display = 'none'; // hide video when done
 	}
 }
 

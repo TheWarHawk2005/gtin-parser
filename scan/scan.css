@@ -1,0 +1,25 @@
+* {
+	margin: 0px;
+	box-sizing:border-box;
+}
+
+body {
+	height: 100lvh;
+	width: 100lvw;
+}
+
+main {
+	height: 100%;
+	width: 100%;
+	background-color: var(--background-color);
+	background-image: url('../pattern.svg');
+	background-repeat: repeat;
+	background-size: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+#video, #input-container {
+	display: block;
+}
