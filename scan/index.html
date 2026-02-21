@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan Data Matrix</title>
+</head>
+
+<body>
+
+    <h2>Upload / Capture Barcode</h2>
+
+    <input type="file" id="fileInput" accept="image/*" capture="environment" />
+    <p id="status"></p>
+
+    <script type="module">
+        import { BrowserMultiFormatReader } from 'https://cdn.skypack.dev/@zxing/browser'
+        import { createClient } from 'https://cdn.skypack.dev/@supabase/supabase-js'
+
+        const supabase = createClient(
+            'YOUR_SUPABASE_URL',
+            'YOUR_PUBLIC_ANON_KEY'
+        )
+
+        const sessionId = new URLSearchParams(window.location.search).get('session')
+
+        const codeReader = new BrowserMultiFormatReader()
+
+        const fileInput = document.getElementById('fileInput')
+        const status = document.getElementById('status')
+
+        fileInput.addEventListener('change', async (event) => {
+            const file = event.target.files[0]
+            if (!file) return
+
+            status.innerText = "Decoding..."
+
+            try {
+                const imageUrl = URL.createObjectURL(file)
+
+                const result = await codeReader.decodeFromImageUrl(imageUrl)
+
+                status.innerText = "Decoded: " + result.text
+
+                await supabase.from('scans').insert({
+                    session_id: sessionId,
+                    data: result.text
+                })
+
+                status.innerText = "Sent successfully!"
+
+            } catch (err) {
+                status.innerText = "Could not decode barcode."
+                console.error(err)
+            }
+        })
+    </script>
+
+</body>
+
+</html>
