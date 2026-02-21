@@ -1,75 +1,73 @@
 <!DOCTYPE html>
 <html>
+<head>
+<meta charset="UTF-8">
+<title>Camera Barcode Scan</title>
+<style>
+  video { width: 100%; max-width: 400px; border: 1px solid #ccc; }
+</style>
+</head>
 <body>
 
-<h2>Upload / Capture Barcode</h2>
-<input type="file" id="fileInput" accept="image/*" capture="environment" />
-<p id="status"></p>
-<img id="preview" style="display:none" />
+<h2>Scan Barcode</h2>
+<video id="video" autoplay></video>
+<p id="status">Initializing...</p>
 
 <script type="module">
 import { BrowserMultiFormatReader, DecodeHintType, BarcodeFormat } from 'https://cdn.jsdelivr.net/npm/@zxing/library@0.19.1/+esm';
 import { createClient } from 'https://cdn.skypack.dev/@supabase/supabase-js';
 
-// Supabase setup
 const supabase = createClient(
   'https://mwsjvglbljyncdrivrtc.supabase.co',
   'sb_publishable_a_U12sK4KRvKiNFbscemOA_hK1_mRAn'
 );
 
-const sessionId = new URLSearchParams(window.location.search).get('session') || "TEST_SESSION";
-
-// ZXing setup
-const hints = new Map();
-hints.set(DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.DATA_MATRIX]);
-const codeReader = new BrowserMultiFormatReader(hints);
-
-const fileInput = document.getElementById('fileInput');
+const sessionId = new URLSearchParams(window.location.search).get('session') || 'TEST_SESSION';
+const video = document.getElementById('video');
 const status = document.getElementById('status');
 
-fileInput.addEventListener('change', async (event) => {
-  const file = event.target.files[0];
-  if (!file) return;
+// Only decode DataMatrix to speed up scanner
+const hints = new Map();
+hints.set(DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.DATA_MATRIX]);
 
-  status.innerText = "Processing image...";
+const codeReader = new BrowserMultiFormatReader(hints);
 
-  const originalImg = new Image();
-  originalImg.src = URL.createObjectURL(file);
-  originalImg.onload = async () => {
+// Start camera
+async function startScanner() {
+  try {
+    const devices = await BrowserMultiFormatReader.listVideoInputDevices();
+    if (devices.length === 0) throw new Error('No camera found');
 
-    // Optional: resize large images
-    const canvas = document.createElement('canvas');
-    const maxDim = 1024;
-    const scale = Math.min(maxDim / originalImg.width, maxDim / originalImg.height, 1);
-    canvas.width = originalImg.width * scale;
-    canvas.height = originalImg.height * scale;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(originalImg, 0, 0, canvas.width, canvas.height);
+    const selectedDeviceId = devices[0].deviceId;
 
-    // Convert canvas back to blob URL for ZXing
-    canvas.toBlob(async (blob) => {
-      const resizedImg = new Image();
-      resizedImg.src = URL.createObjectURL(blob);
-      resizedImg.onload = async () => {
-        try {
-          const result = await codeReader.decodeFromImageElement(resizedImg);
-          status.innerText = "Decoded: " + result.text;
+    status.innerText = "Camera started. Scanning...";
 
-          // Send to Supabase
-          await supabase.from('scans').insert({
-            session_id: sessionId,
-            data: result.text
-          });
+    codeReader.decodeFromVideoDevice(selectedDeviceId, video, async (result, err) => {
+      if (result) {
+        status.innerText = "Decoded: " + result.text;
 
-          status.innerText = "Sent successfully!";
-        } catch (err) {
-          status.innerText = "Could not decode barcode.";
-          console.error("ZXing decode error:", err);
-        }
-      };
+        // Send to Supabase
+        await supabase.from('scans').insert({
+          session_id: sessionId,
+          data: result.text
+        });
+
+        // Optional: stop scanner after first successful scan
+        codeReader.reset();
+        status.innerText = "Scan complete and sent!";
+      } else if (err && !(err instanceof ZXing.NotFoundException)) {
+        console.error(err);
+      }
     });
-  };
-});
+
+  } catch (err) {
+    status.innerText = "Error: " + err.message;
+    console.error(err);
+  }
+}
+
+// Start on page load
+startScanner();
 </script>
 
 </body>
