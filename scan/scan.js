@@ -39,7 +39,7 @@ export async function startScanner(videoElement, statusElement) {
 		statusElement.innerText = "Camera started. Scanning...";
 
 		codeReader.decodeFromVideoDevice(selectedDeviceId, videoElement, (result, err) => {
-			handleResult(result, err, statusElement);
+			handleResult(result, err, statusElement, videoElement);
 		});
 
 	} catch (err) {
@@ -50,17 +50,26 @@ export async function startScanner(videoElement, statusElement) {
 }
 
 // ---------------- Stop Scanner ----------------
-export function stopScanner() {
+export function stopScanner(videoElement) {
 	scanning = false;
 	codeReader.reset();
+
 	if (currentStream) {
+		// Stop all tracks
 		currentStream.getTracks().forEach(track => track.stop());
 		currentStream = null;
+	}
+
+	if (videoElement) {
+		// Detach the stream from the video element
+		videoElement.srcObject = null;
+		videoElement.pause();
+		videoElement.load(); // reset the element completely
 	}
 }
 
 // ---------------- Handle Decoded Result ----------------
-async function handleResult(result, err, statusElement) {
+async function handleResult(result, err, statusElement, videoElement) {
 	if (result) {
 		statusElement.innerText = "Decoded: " + result.text;
 
@@ -73,7 +82,7 @@ async function handleResult(result, err, statusElement) {
 		if (error) console.error("Supabase insert failed:", error);
 
 		// Stop scanner after first successful scan
-		stopScanner();
+		stopScanner(videoElement);
 		statusElement.innerText = "Scan complete and sent!";
 	} else if (err && !(err instanceof NotFoundException)) {
 		console.error("ZXing error:", err);
