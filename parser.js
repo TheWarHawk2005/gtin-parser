@@ -27,7 +27,7 @@ document.querySelectorAll('.output-div').forEach(div => {
 dataInput.addEventListener('click', event => {
     if (event.target.value) event.target.select()
 })
-dataInput.addEventListener('input', event => {
+dataInput.addEventListener('change', event => {
     parseInput(dataInput.value)
 })
 
