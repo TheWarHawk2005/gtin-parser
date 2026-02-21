@@ -6,7 +6,6 @@
 	<title>Camera Barcode Scan</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<link rel="stylesheet" href="scan.css">
 </head>
 
 <body>
@@ -16,7 +15,15 @@
 	<p id="status">Initializing...</p>
 	<button id="startBtn">Start Scan</button>
 
-	<script type="module" src="scan.js"></script>
+	<script type="module">
+		import { startScanner } from './scan.js';
+
+		const videoEl = document.getElementById('video');
+		const statusEl = document.getElementById('status');
+		const startBtn = document.getElementById('startBtn');
+
+		startBtn.addEventListener('click', () => startScanner(videoEl, statusEl));
+	</script>
 </body>
 
 </html>
