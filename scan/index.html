@@ -12,6 +12,7 @@
 <h2>Scan Barcode</h2>
 <video id="video" autoplay></video>
 <p id="status">Initializing...</p>
+<button id="startBtn">Start Scan</button>
 
 <script type="module">
 import { BrowserMultiFormatReader, DecodeHintType, BarcodeFormat } from 'https://cdn.jsdelivr.net/npm/@zxing/library@0.19.1/+esm';
@@ -25,23 +26,26 @@ const supabase = createClient(
 const sessionId = new URLSearchParams(window.location.search).get('session') || 'TEST_SESSION';
 const video = document.getElementById('video');
 const status = document.getElementById('status');
+const startBtn = document.getElementById('startBtn');
 
-// Only decode DataMatrix to speed up scanner
 const hints = new Map();
 hints.set(DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.DATA_MATRIX]);
-
 const codeReader = new BrowserMultiFormatReader(hints);
 
-// Start camera
-async function startScanner() {
-  try {
-    const devices = await BrowserMultiFormatReader.listVideoInputDevices();
-    if (devices.length === 0) throw new Error('No camera found');
+startBtn.addEventListener('click', async () => {
+  status.innerText = "Starting camera...";
 
-    const selectedDeviceId = devices[0].deviceId;
+  try {
+    // Get camera devices
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const videoDevices = devices.filter(d => d.kind === 'videoinput');
+    if (videoDevices.length === 0) throw new Error('No camera found');
+
+    const selectedDeviceId = videoDevices[0].deviceId;
 
     status.innerText = "Camera started. Scanning...";
 
+    // Start decoding from camera
     codeReader.decodeFromVideoDevice(selectedDeviceId, video, async (result, err) => {
       if (result) {
         status.innerText = "Decoded: " + result.text;
@@ -52,7 +56,6 @@ async function startScanner() {
           data: result.text
         });
 
-        // Optional: stop scanner after first successful scan
         codeReader.reset();
         status.innerText = "Scan complete and sent!";
       } else if (err && !(err instanceof ZXing.NotFoundException)) {
@@ -64,10 +67,7 @@ async function startScanner() {
     status.innerText = "Error: " + err.message;
     console.error(err);
   }
-}
-
-// Start on page load
-startScanner();
+});
 </script>
 
 </body>
