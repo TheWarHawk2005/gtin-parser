@@ -34,8 +34,8 @@ supabase
 			table: 'scans'
 		},
 		payload => {
-			console.log('RECIEVED DATA', sessionConfig.session_id, payload.new.session_id)
 			if (sessionConfig.session_id && payload.new.session_id === sessionConfig.session_id) {
+				console.log('Recieved data payload:', payload.new.data)
 				dataInput.value = payload.new.data
 			}
 		}
