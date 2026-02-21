@@ -33,8 +33,9 @@ supabase
 			table: 'scans'
 		},
 		payload => {
+			console.log(payload.new.data)
 			if (sessionConfig.session_id && payload.new.session_id === sessionConfig.session_id) {
-				document.getElementById('data-input').innerText = payload.new.data
+				document.getElementById('data-input').value = payload.new.data
 			}
 		}
 	)
