@@ -4,8 +4,8 @@ import { createClient } from 'https://cdn.skypack.dev/@supabase/supabase-js';
 
 // ---------------- Supabase Setup ----------------
 const supabase = createClient(
-  'https://mwsjvglbljyncdrivrtc.supabase.co',
-  'sb_publishable_a_U12sK4KRvKiNFbscemOA_hK1_mRAn'
+	'https://mwsjvglbljyncdrivrtc.supabase.co',
+	'sb_publishable_a_U12sK4KRvKiNFbscemOA_hK1_mRAn'
 );
 
 const sessionId = new URLSearchParams(window.location.search).get('session') || 'TEST_SESSION';
@@ -21,65 +21,54 @@ let scanning = false;
 
 // ---------------- Start Scanner ----------------
 export async function startScanner(videoElement, statusElement) {
-  if (scanning) return; // Prevent double-start
-  scanning = true;
-  statusElement.innerText = "Initializing scanner...";
+	if (scanning) return;
+	scanning = true;
+	statusElement.innerText = "Initializing scanner...";
 
-  try {
-    // Pick back camera once
-    if (!selectedDeviceId) {
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      const videoDevices = devices.filter(d => d.kind === 'videoinput');
-      selectedDeviceId =
-        videoDevices.find(d => d.label.toLowerCase().includes('back'))?.deviceId ||
-        videoDevices[0]?.deviceId;
+	try {
+		if (!selectedDeviceId) {
+			selectedDeviceId = await getCameraDeviceId();
+		}
 
-      if (!selectedDeviceId) throw new Error("No camera found");
-    }
+		if (!currentStream) {
+			currentStream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: selectedDeviceId } });
+			videoElement.srcObject = currentStream;
+			await videoElement.play();
+		}
 
-    // Request camera only once
-    if (!currentStream) {
-      currentStream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: selectedDeviceId } });
-      videoElement.srcObject = currentStream;
-      await videoElement.play();
-    }
+		statusElement.innerText = "Camera started. Scanning...";
 
-    statusElement.innerText = "Camera started. Scanning...";
+		codeReader.decodeFromVideoDevice(selectedDeviceId, videoElement, handleResult);
 
-    // Start decoding
-    codeReader.decodeFromVideoDevice(selectedDeviceId, videoElement, async (result, err) => {
-      if (result) {
-        statusElement.innerText = "Decoded: " + result.text;
-
-        // Send to Supabase
-        const { error } = await supabase.from('scans').insert({
-          session_id: sessionId,
-          data: result.text
-        });
-
-        if (error) console.error("Supabase insert failed:", error);
-
-        // Stop scanning after success
-        stopScanner();
-        statusElement.innerText = "Scan complete and sent!";
-      } else if (err && !(err instanceof ZXing.NotFoundException)) {
-        console.error("ZXing error:", err);
-      }
-    });
-
-  } catch (err) {
-    scanning = false;
-    statusElement.innerText = "Error: " + err.message;
-    console.error(err);
-  }
+	} catch (err) {
+		scanning = false;
+		statusElement.innerText = "Error: " + err.message;
+		console.error(err);
+	}
 }
 
 // ---------------- Stop Scanner ----------------
 export function stopScanner() {
-  scanning = false;
-  codeReader.reset();
-  if (currentStream) {
-    currentStream.getTracks().forEach(track => track.stop());
-    currentStream = null;
-  }
+	scanning = false;
+	codeReader.reset();
+	if (currentStream) {
+		currentStream.getTracks().forEach(track => track.stop());
+		currentStream = null;
+	}
+}
+
+async function getCameraDeviceId() {
+	// Request camera once to get permission & labels
+	const tempStream = await navigator.mediaDevices.getUserMedia({ video: true });
+	tempStream.getTracks().forEach(track => track.stop());
+
+	// Enumerate devices now that permission is granted
+	const devices = await navigator.mediaDevices.enumerateDevices();
+	const videoDevices = devices.filter(d => d.kind === 'videoinput');
+
+	if (videoDevices.length === 0) throw new Error("No camera found");
+
+	// Pick back camera if possible
+	const backCamera = videoDevices.find(d => d.label.toLowerCase().includes('back'));
+	return backCamera ? backCamera.deviceId : videoDevices[0].deviceId;
 }
