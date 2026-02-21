@@ -1,6 +1,26 @@
+:root {
+	--nav-height: 30px;
+	--footer-height: 30px;
+
+	--background-color: white;
+	--primary-color: rgb(151, 77, 78);
+	--secondary-color: #e0e3ee;
+	--text-color: black;
+	--input-background-color: #e0e3ee;
+
+	--success: #abff94;
+}
+
+@font-face {
+	font-family: 'Josefin Slab';
+	src: url('../Josefin_Slab/JosefinSlab-VariableFont_wght.ttf');
+}
+
 * {
 	margin: 0px;
-	box-sizing:border-box;
+	box-sizing: border-box;
+	font-family: 'Josefin Slab';
+
 }
 
 body {
@@ -11,15 +31,34 @@ body {
 main {
 	height: 100%;
 	width: 100%;
-	background-color: var(--background-color);
+	background-color: var(--primary-color);
 	background-image: url('../pattern.svg');
 	background-repeat: repeat;
 	background-size: 40px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
+
 }
 
-#video, #input-container {
-	display: block;
+#input-container {
+	text-align: center;
+}
+
+#video {
+	display: none;
+}
+
+#status {
+	font-weight: bold
+}
+
+#startBtn {
+	display: inline-flex;
+	margin-top: 10px;
+	border-radius: 4px;
+	border: none;
+	padding: 8px;
+	font-weight: bold;
+	font-size: 2rem;
 }
