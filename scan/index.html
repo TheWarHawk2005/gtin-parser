@@ -15,7 +15,7 @@
     <p id="status"></p>
 
     <script type="module">
-        import { BrowserMultiFormatReader } from 'https://unpkg.com/@zxing/browser@latest'
+        import { BrowserMultiFormatReader, DecodeHintType, BarcodeFormat } from 'https://cdn.jsdelivr.net/npm/@zxing/library@0.19.1/+esm';
         import { createClient } from 'https://cdn.skypack.dev/@supabase/supabase-js'
 
         const supabase = createClient(
